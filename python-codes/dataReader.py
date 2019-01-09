@@ -19,3 +19,42 @@ encoded = np.array([vocab_to_num[c] for c in text], dtype=np.int32)
 # print(encoded)
 # print(text[:100])
 print(len(vocab))
+
+
+def getBatches(arr,batchSize,nSteps):
+    # number of character per batch. batch is a grid of dimension batchSize * nSteps
+    charsPerBatch = batchSize * nSteps
+    # total number of batch so that each batch has the same size
+    totalBatch = len(arr)//charsPerBatch
+    arr = arr[0:totalBatch*charsPerBatch]
+    arr = np.reshape(arr,(batchSize,-1))
+
+    # print(arr.shape[1])
+    # print(totalBatch)
+    # print(len(text))
+
+    for n in range(0,arr.shape[1],nSteps):
+        # input values for all rows (indicated by first :) from n to n+nSteps
+        x = arr[:,n:n+nSteps]
+        # target values for all rows (indicated by first :) from n+1 (that is the next char) to n+1+nSteps
+        yTemp = arr[:,n+1:n+nSteps+1]
+
+        # For the very last batch, y will be one character short at the end of
+        # the sequences which breaks things. To get around this, I'll make an
+        # array of the appropriate size first, of all zeros, then add the targets.
+        # This will introduce a small artifact in the last batch, but it won't matter.
+        y = np.zeros(x.shape, dtype=x.dtype)
+        y[:,:yTemp.shape[1]] = yTemp
+
+        # same as return. but works only for generator function
+        # more details on generator function
+        # https://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do
+        yield x,y
+
+
+
+batches = getBatches(encoded,10,50)
+x,y = next(batches)
+
+print('x\n', x[:10, :10])
+print('\ny\n', y[:10, :10])
