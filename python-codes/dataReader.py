@@ -58,3 +58,29 @@ x,y = next(batches)
 
 print('x\n', x[:10, :10])
 print('\ny\n', y[:10, :10])
+
+def buildInput(batchSize,nSteps):
+    # tensorflow placeholder for input
+    input = tf.placeholder(tf.int32,[batchSize,nSteps],"input")
+    # tensorflow placeholder for target
+    target = tf.placeholder(tf.int32,[batchSize,nSteps],"target")
+    # tensorflow placeholder for dropout wrapper with 0-d tensor
+    keepProbForDropOut = tf.placeholder(tf.int32,name="keepProbForDropOut")
+    return input,target,keepProbForDropOut
+
+
+def buildCell(lstmSize,keepProb):
+    lstm = tf.contrib.rnn.BasicLSTMCell(lstmSize)
+    dropOutWrapper = tf.contrib.rnn.DropoutWrapper(lstm)
+    return dropOutWrapper
+
+def buildLSTMNetwork(lstmSize,numOfLayer,batchSize,keepProb):
+
+    dropoutWrapper = buildCell(lstmSize,keepProb)
+    cell = tf.contrib.rnn.MultiRNNCell([(buildCell(lstmSize,keepProb)) for _ in range(numOfLayer)])
+    initialState = cell.zero_state(batchSize,tf.int32)
+
+    return cell,initialState
+
+
+
