@@ -100,3 +100,26 @@ def buildOutput(lstmOutput,inputSize,outputSize):
     return logits,output
 
 
+def buildLoss(logits,targets,lstmSize,numOfClasses):
+    targetsOneHot = tf.one_hot(targets,numOfClasses)
+    targetsReshaped = tf.reshape(targetsOneHot,logits.get_shape())
+
+    loss = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=targetsReshaped)
+    loss = tf.reduce_mean(loss)
+
+    return loss
+
+def buildOptimizer(loss,learningRate,gradientClip):
+    trainableVariables = tf.trainable_variables()
+    gradients, _ = tf.clip_by_global_norm(tf.gradients(loss,trainableVariables),gradientClip)
+
+    trainingOptimizer = tf.train.AdamOptimizer(learningRate)
+    optimizer = trainingOptimizer.apply_gradients(zip(gradients,trainableVariables))
+
+    return optimizer
+
+
+
+
+
+
